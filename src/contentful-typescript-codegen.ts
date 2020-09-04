@@ -3,6 +3,11 @@ import renderFieldsOnly from "./renderers/renderFieldsOnly"
 import path from "path"
 import { outputFileSync } from "fs-extra"
 
+interface IConfig {
+  outputFile: string
+  environment: any // Could do better here
+}
+
 const meow = require("meow")
 
 const cli = meow(
@@ -59,10 +64,7 @@ const cli = meow(
   },
 )
 
-async function runCodegen(outputFile: string) {
-  const getEnvironmentPath = path.resolve(process.cwd(), "./getContentfulEnvironment.js")
-  const getEnvironment = require(getEnvironmentPath)
-  const environment = await getEnvironment()
+async function runCodegen({ outputFile, environment }: IConfig) {
   const contentTypes = await environment.getContentTypes({ limit: 1000 })
   const locales = await environment.getLocales()
   const outputPath = path.resolve(process.cwd(), outputFile)
@@ -80,6 +82,9 @@ async function runCodegen(outputFile: string) {
   outputFileSync(outputPath, output)
 }
 
+/*
+ * Only expose node api command
+
 runCodegen(cli.flags.output).catch(error => {
   console.error(error)
   process.exit(1)
@@ -93,4 +98,9 @@ if (cli.flags.poll) {
   } else {
     throw new Error(`Expected a positive numeric interval, but got ${cli.flags.interval}`)
   }
+}
+*/
+
+export const codegen = async (config: IConfig) => {
+  await runCodegen(config)
 }
